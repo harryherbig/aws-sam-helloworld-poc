@@ -1,0 +1,10 @@
+version = 0.1
+[default]
+[default.deploy]
+[default.deploy.parameters]
+stack_name = "sam-poc-harry"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-i7wm6bbu61rm"
+s3_prefix = "sam-poc-harry"
+region = "eu-west-1"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"

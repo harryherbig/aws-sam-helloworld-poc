@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  sam-poc-helloworld
+  sam-poc-harry
 
   POC to validate AWS SAM, created with sam init from hello world template
 
@@ -14,13 +14,81 @@ Resources:
   HelloWorldFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
+      AutoPublishAlias: live
+      DeploymentPreference:
+        Type: Linear10PercentEvery10Minutes
+        Hooks:
+          PreTraffic: !Ref PreLiveHook
+        Alarms:
+          # A list of alarms that you want to monitor
+          - !Ref AliasErrorMetricGreaterThanZeroAlarm
+          - !Ref LatestVersionErrorMetricGreaterThanZeroAlarm
       CodeUri: HelloWorldFunction
       Handler: helloworld.App::handleRequest
       Runtime: java11
       MemorySize: 512
-      Environment: # More info about Env Vars: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#environment-object
+
+  PreLiveHook:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: PreLiveHook
+      Handler: prelive.Validator::handleRequest
+      Runtime: java11
+      MemorySize: 512
+      DeploymentPreference:
+        Enabled: false
+      Environment:
         Variables:
-          PARAM1: VALUE
+          NewVersion: !Ref HelloWorldFunction.Version
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - codedeploy:PutLifecycleEventHookExecutionStatus
+              Resource: !Sub 'arn:aws:codedeploy:${AWS::Region}:${AWS::AccountId}:deploymentgroup:${ServerlessDeploymentApplication}/*'
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - lambda:InvokeFunction
+              Resource: !Ref HelloWorldFunction.Version
+
+  AliasErrorMetricGreaterThanZeroAlarm:
+    Type: "AWS::CloudWatch::Alarm"
+    Properties:
+      AlarmDescription: Lambda Function Error > 0
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: Resource
+          Value: !Sub "${HelloWorldFunction}:live"
+        - Name: FunctionName
+          Value: !Ref HelloWorldFunction
+      EvaluationPeriods: 2
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Period: 60
+      Statistic: Sum
+      Threshold: 0
+
+  LatestVersionErrorMetricGreaterThanZeroAlarm:
+    Type: "AWS::CloudWatch::Alarm"
+    Properties:
+      AlarmDescription: Lambda Function Error > 0
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: Resource
+          Value: !Sub "${HelloWorldFunction}:live"
+        - Name: FunctionName
+          Value: !Ref HelloWorldFunction
+        - Name: ExecutedVersion
+          Value: !GetAtt HelloWorldFunction.Version.Version
+      EvaluationPeriods: 2
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Period: 60
+      Statistic: Sum
+      Threshold: 0
 
 Outputs:
   HelloWorldFunction:
