@@ -5,22 +5,21 @@ Description: >
 
   POC to validate AWS SAM, created with sam init from hello world template
 
-# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
   Function:
     Timeout: 20
 
 Resources:
   HelloWorldFunction:
-    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Type: AWS::Serverless::Function
     Properties:
+      FunctionName: sam-poc-helloworld
       AutoPublishAlias: live
       DeploymentPreference:
         Type: Linear10PercentEvery10Minutes
         Hooks:
           PreTraffic: !Ref PreLiveHook
         Alarms:
-          # A list of alarms that you want to monitor
           - !Ref AliasErrorMetricGreaterThanZeroAlarm
           - !Ref LatestVersionErrorMetricGreaterThanZeroAlarm
       CodeUri: HelloWorldFunction
@@ -31,15 +30,14 @@ Resources:
   PreLiveHook:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: sam-poc-prelivehook
       CodeUri: PreLiveHook
       Handler: prelive.Validator::handleRequest
       Runtime: java11
       MemorySize: 512
-      DeploymentPreference:
-        Enabled: false
       Environment:
         Variables:
-          NewVersion: !Ref HelloWorldFunction.Version
+          SAM_VERSION: !Ref HelloWorldFunction.Version
       Policies:
         - Version: "2012-10-17"
           Statement:
@@ -81,8 +79,8 @@ Resources:
           Value: !Sub "${HelloWorldFunction}:live"
         - Name: FunctionName
           Value: !Ref HelloWorldFunction
-        - Name: ExecutedVersion
-          Value: !GetAtt HelloWorldFunction.Version.Version
+#        - Name: ExecutedVersion
+#          Value: !GetAtt HelloWorldFunction.Version
       EvaluationPeriods: 2
       MetricName: Errors
       Namespace: AWS/Lambda
@@ -91,9 +89,18 @@ Resources:
       Threshold: 0
 
 Outputs:
-  HelloWorldFunction:
+  HelloWorldFunctionArn:
     Description: "Hello World Lambda Function ARN"
     Value: !GetAtt HelloWorldFunction.Arn
+#  HelloWorldFunctionVersion:
+#    Description: "Hello World Lambda Function Version"
+#    Value: !GetAtt HelloWorldFunction.Version
   HelloWorldFunctionIamRole:
     Description: "Implicit IAM Role created for Hello World function"
     Value: !GetAtt HelloWorldFunctionRole.Arn
+#  PreLiveHookFunctionArn:
+#    Description: "Hello World Lambda Function ARN"
+#    Value: !GetAtt PreLiveHook.Arn
+#  PreLiveHookFunctionIamRole:
+#    Description: "Implicit IAM Role created for Hello World function"
+#    Value: !GetAtt PreLiveHook.Arn

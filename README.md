@@ -25,6 +25,12 @@ beware, this leaves a stack, that is created before invoking `sam deploy`:
 
 import both build.gradle files via rightclick
 
- 
+
+## Comments
+### 15.09.
+- Musste >10 mal den cloudformation stack abräumen
+- manuell - per aws cli
+- weil eine der beiden Functions nicht geupdated werden konnte
+
 
   
