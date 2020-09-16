@@ -10,14 +10,23 @@
 `sam deploy`
 
 
-## how to destroy everything?
+## deploy new version like a merged PR
+`sam package \
+   --template-file template.yaml \
+   --output-template-file deployment.yml --s3-bucket sam-poc-deployment-artifacts`
+   
+`sam deploy --template-file deployment.yml --stack-name sam-poc-harry`
 
-`aws cloudformation delete-stack --stack-name sam-poc-harry`
+## how to destroy everything?
+1. clean s3 buckets to prevent failed deletions 
+2. `aws cloudformation delete-stack --stack-name sam-poc-harry`
 
 <br/><br/>
-beware, this leaves a stack, that is created before invoking `sam deploy`:
+beware, this leaves a stack, that is created by invoking `sam init`:
 
 `aws-sam-cli-managed-default`
+
+this manages template versions, like a TF remote state
 
   
   
