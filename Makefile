@@ -5,25 +5,28 @@ help: ## This help.
 
 .DEFAULT_GOAL := help
 
-init: sam-build-container sam-deploy-all ## run when no cloudformation stack exists to deploy current state
+init: build sam-deploy-all ## run when no cloudformation stack exists to deploy current state
 
 
 destroy: cf-cancel-stackupdate s3-empty ## deletes sam cf stack via aws cli after emptying the s3 bucket
+	@echo "deleting stack via aws cf";
 	aws cloudformation delete-stack --stack-name sam-poc-harry
 
-update: sam-build-container sam-package-all sam-deploy-packaged-all ## run when cf stack exists to trigger a CodeDeploy Deployment
+update: build sam-package-all sam-deploy-packaged-all ## run when cf stack exists to trigger a CodeDeploy Deployment
 
-invoke-local-hook: sam-build-container ## locally invoke PreLiveHook with Test Event (needs aws credentials)
+invoke-local-hook: build ## locally invoke PreLiveHook with Test Event (needs aws credentials)
 	sam local invoke --profile default PreLiveHook --event events/prelivehook.json
 
-invoke-local-function: sam-build-container ## locally invoke HelloWorldFunction with SQS Test Event
+invoke-local-function: build ## locally invoke HelloWorldFunction with SQS Test Event
 	sam local invoke HelloWorldFunction --event events/sqsevent.json
 
 
-cf-cancel-stackupdate:
-	@if [ "$(aws cloudformation describe-stacks --stack-name sam-poc-harry | jq ".Stacks[0].StackStatus" --raw-output | sed -En 's/[A-Z_]+_(IN_PROGRESS)/\1/p')" = "IN_PROGRESS" ]; then aws cloudformation cancel-update-stack --stack-name sam-poc-harry; sleep 5;fi
+cf-cancel-stackupdate: ## if IN_PROGRESS cancel update
+	@if [ "$(aws cloudformation describe-stacks --stack-name sam-poc-harry | jq '.Stacks[0].StackStatus' --raw-output | sed -En 's/[A-Z_]+_(IN_PROGRESS)/\1/p')" = "IN_PROGRESS" ]; then @echo "have to cancel update"; aws cloudformation cancel-update-stack --stack-name sam-poc-harry ; @echo "sleeping 5s"; sleep 5; fi
 
-sam-build-container:
+build-debug: build ls-hook
+
+build:
 	sam build --use-container
 
 sam-deploy-all:
