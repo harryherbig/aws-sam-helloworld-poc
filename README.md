@@ -9,6 +9,11 @@
   
 `sam deploy`
 
+:warning: <br/>
+changes exclusively to template.yml also need a `sam build` before able to `sam deploy` it.
+
+
+
 
 ## deploy new version like a merged PR
 `sam package \
@@ -41,5 +46,14 @@ import both build.gradle files via rightclick
 - manuell - per aws cli
 - weil eine der beiden Functions nicht geupdated werden konnte
 
+
+### 16.09.
+obwohl `sam validate`d treten alle Fehler erst bei `sam deploy` auf, und die Hilfe zur Fehlerbehebung ist dürftig, da nicht mal die Zeile genannt wird, in der der Fehler auftritt:
+<br>
+`Waiting for changeset to be created..`<br>
+`Error: Failed to create changeset for the stack: sam-poc-harry,`<br>
+`ex: Waiter ChangeSetCreateComplete failed:`<br>
+`Waiter encountered a terminal failure state Status: FAILED. Reason: Template error: every Fn::GetAtt object requires two non-empty parameters, the resource name and the resource attribute`
+ 
 
   
