@@ -7,6 +7,11 @@ Globals:
     Timeout: 20
 
 Resources:
+  DeploymentBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: sam-poc-deployment-artifacts
+
   HelloWorldFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -19,23 +24,26 @@ Resources:
         Alarms:
           - !Ref AliasErrorMetricGreaterThanZeroAlarm
           - !Ref LatestVersionErrorMetricGreaterThanZeroAlarm
-      CodeUri: HelloWorldFunction
+      CodeUri: ./HelloWorldFunction
       Handler: helloworld.App::handleRequest
       Runtime: java11
       MemorySize: 512
 
-  DeploymentBucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: sam-poc-deployment-artifacts
-
   PreLiveHook:
     Type: AWS::Serverless::Function
     Properties:
+#      DeploymentPreference:
+#        # https://github.com/aws/aws-sam-cli/wiki/08-2020-codeploy-servicerole
+#        Enabled: true
+#        Type: AllAtOnce
+#        AutoPublishAlias: latest
+      # Naming Convention: https://aws.amazon.com/blogs/compute/implementing-safe-aws-lambda-deployments-with-aws-codedeploy/
       FunctionName: CodeDeployHook_PreLiveHook_HelloWorldFunction
-      CodeUri: PreLiveHook
+      CodeUri: ./PreLiveHook
       Handler: prelive.Validator::handleRequest
       Runtime: java11
+#      Metadata:
+#        BuildMethod: Makefile
       MemorySize: 512
       Environment:
         Variables:

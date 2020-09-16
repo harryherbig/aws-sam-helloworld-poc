@@ -10,7 +10,7 @@ public class App implements RequestHandler<SQSEvent, String> {
 
   public String handleRequest(final SQSEvent input, final Context context) {
     final JSONObject result =
-        new JSONObject().put("message", "Something went wrong!.").put("result", 500);
+        new JSONObject().put("message", "Forcing bad version to make hook fail!.").put("result", 500);
     System.out.println(
         "Hello World Function was invoked. My version is: "
             + System.getenv("AWS_LAMBDA_FUNCTION_VERSION"));
