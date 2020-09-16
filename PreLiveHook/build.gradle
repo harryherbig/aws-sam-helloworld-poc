@@ -10,6 +10,9 @@ dependencies {
     implementation 'com.amazonaws:aws-lambda-java-core:1.2.0'
     implementation 'com.amazonaws:aws-lambda-java-events:3.1.0'
     implementation 'com.amazonaws:aws-java-sdk-lambda:1.11.860'
+    implementation 'com.amazonaws:aws-java-sdk-codedeploy:1.11.860'
+    implementation 'org.json:json:20200518'
+    implementation 'io.vavr:vavr:1.0.0-alpha-3'
 
     testImplementation 'junit:junit:4.12'
 }
