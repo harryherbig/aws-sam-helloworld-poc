@@ -32,7 +32,7 @@ Resources:
   PreLiveHook:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: sam-poc-prelivehook
+      FunctionName: CodeDeployHook_PreLiveHook_HelloWorldFunction
       CodeUri: PreLiveHook
       Handler: prelive.Validator::handleRequest
       Runtime: java11
