@@ -82,7 +82,7 @@ Resources:
         - Name: FunctionName
           Value: !Ref HelloWorldFunction
         - Name: ExecutedVersion
-          Value: !GetAtt HelloWorldFunction.Version
+          Value: !Ref HelloWorldFunction.Version
       EvaluationPeriods: 2
       MetricName: Errors
       Namespace: AWS/Lambda
