@@ -69,3 +69,6 @@ oft failed Update `HelloWorldFunctionAlias`, was nur durch `aws cf delete-stack.
 Conventional Namings, e.g. for PreHook Lambda, sonst stimmen die Rechte nicht
 Name für statebucket nicht änderbar
 Keine custom tags vergebbar
+
+
+IntelliJ rename package "helloworld" of `HelloWorldFunction` also renames package `prelive` for `PreLiveHook`
