@@ -1,19 +1,35 @@
 package prelive;
 
 import com.amazonaws.regions.Regions;
+import com.amazonaws.services.codedeploy.AmazonCodeDeploy;
+import com.amazonaws.services.codedeploy.AmazonCodeDeployClientBuilder;
 import com.amazonaws.services.lambda.AWSLambda;
 import com.amazonaws.services.lambda.AWSLambdaClientBuilder;
+import com.amazonaws.services.lambda.model.InvocationType;
 import com.amazonaws.services.lambda.model.InvokeRequest;
 import com.amazonaws.services.lambda.model.InvokeResult;
 import com.amazonaws.services.lambda.model.ServiceException;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
-import java.nio.charset.StandardCharsets;
+import io.vavr.control.Try;
+import org.json.JSONObject;
 
-public class Validator implements RequestHandler<Void, String> {
+public class Validator implements RequestHandler<String, String> {
+  AmazonCodeDeploy codeDeploy;
+  public Validator() {
+    codeDeploy = AmazonCodeDeployClientBuilder.defaultClient();
+  }
 
   @Override
-  public String handleRequest(Void input, Context context) {
+  public String handleRequest(String input, Context context) {
+    if (input!=null && input.contains("{")) {
+      final JSONObject jsonObject = new JSONObject(input);
+      System.out.println("Got following event input:");
+      System.out.println(jsonObject.toString());
+    }  else {
+      System.out.println("Got NO !!!! input:");
+    }
+
     final String sam_version = System.getenv("SAM_VERSION");
     final String sam_local = System.getenv("AWS_SAM_LOCAL");
     final boolean local = sam_local!= null && sam_local.equals("true");
@@ -41,6 +57,7 @@ public class Validator implements RequestHandler<Void, String> {
     InvokeRequest invokeRequest =
         new InvokeRequest()
             .withFunctionName(funcName)
+            .withInvocationType(InvocationType.RequestResponse)
             .withPayload(
                 "{\n"
                     + "  \"Records\": [\n"
@@ -67,9 +84,18 @@ public class Validator implements RequestHandler<Void, String> {
     try {
       AWSLambda awsLambda = AWSLambdaClientBuilder.standard().withRegion(region).build();
       InvokeResult invokeResult = awsLambda.invoke(invokeRequest);
-      String ans = new String(invokeResult.getPayload().array(), StandardCharsets.UTF_8);
-      System.out.println(ans);
-      return String.format("Result: status: %s, payload: %s", invokeResult.getStatusCode(), ans);
+      final JSONObject result = new JSONObject(invokeResult.getPayload());
+      final Try<Integer> resultTry = Try.of(() -> result.getInt("result"));
+      if ( resultTry.isSuccess() && resultTry.get() == 200) {
+        final String message = result.getString("message");
+        return String.format("Result, with status: %s, message: %s", resultTry.get(),
+            message);
+//        final PutLifecycleEventHookExecutionStatusRequest putLifecycleEventHookExecutionStatusRequest = new PutLifecycleEventHookExecutionStatusRequest();
+//        putLifecycleEventHookExecutionStatusRequest.setDeploymentId(
+//        codeDeploy.putLifecycleEventHookExecutionStatus()
+      }
+
+      return "Something went wrong, didn't get a json payload. Not switching Alias";
     } catch (ServiceException e) {
       System.out.println(e.getMessage());
     }
