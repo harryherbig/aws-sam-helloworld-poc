@@ -1,20 +1,14 @@
-package prelive;
-
+package prelive.model;
 
 import java.util.Objects;
 
-//  {
-//    "deploymentId": "string",
-//      "lifecycleEventHookExecutionId": "string",
-//      "status": "string"
-//  }
+/** { "deploymentId": "string", "lifecycleEventHookExecutionId": "string", "status": "string" } */
 public class HookEvent {
   String deploymentId;
   String lifecycleEventHookExecutionId;
   String status;
 
-  public HookEvent() {
-  }
+  public HookEvent() {}
 
   public HookEvent(String deploymentId, String lifecycleEventHookExecutionId, String status) {
     this.deploymentId = deploymentId;
@@ -52,11 +46,17 @@ public class HookEvent {
 
   @Override
   public String toString() {
-    return "{" +
-        "deploymentId='" + deploymentId + '\'' +
-        ", lifecycleEventHookExecutionId='" + lifecycleEventHookExecutionId + '\'' +
-        ", status='" + status + '\'' +
-        '}';
+    return "{"
+        + "deploymentId='"
+        + deploymentId
+        + '\''
+        + ", lifecycleEventHookExecutionId='"
+        + lifecycleEventHookExecutionId
+        + '\''
+        + ", status='"
+        + status
+        + '\''
+        + '}';
   }
 
   @Override
@@ -68,9 +68,9 @@ public class HookEvent {
       return false;
     }
     HookEvent hookEvent = (HookEvent) o;
-    return deploymentId.equals(hookEvent.deploymentId) &&
-        lifecycleEventHookExecutionId.equals(hookEvent.lifecycleEventHookExecutionId) &&
-        status.equals(hookEvent.status);
+    return deploymentId.equals(hookEvent.deploymentId)
+        && lifecycleEventHookExecutionId.equals(hookEvent.lifecycleEventHookExecutionId)
+        && status.equals(hookEvent.status);
   }
 
   @Override

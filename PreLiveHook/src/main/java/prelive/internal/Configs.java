@@ -1,4 +1,4 @@
-package prelive;
+package prelive.internal;
 
 public class Configs {
   final public static String LIVE_VERSION_ARN = "arn:aws:lambda:eu-west-1:763984976250:function:sam-poc-helloworld:live";
