@@ -5,48 +5,82 @@ help: ## This help.
 
 .DEFAULT_GOAL := help
 
-init: build sam-deploy-all ## run when no cloudformation stack exists to deploy current state
+# / MAIN SAM COMMANDS #
+create: build deploy ## create and deploy sam stack from scratch
 
-
-destroy: cf-cancel-stackupdate s3-empty ## deletes sam cf stack via aws cli after emptying the s3 bucket
+destroy: cf-cancel-stackupdate  ## destroy sam stack
 	@echo "deleting stack via aws cf";
 	aws cloudformation delete-stack --stack-name sam-poc-harry
 
-update: build sam-package-all sam-deploy-packaged-all ## run when cf stack exists to trigger a CodeDeploy Deployment
+update-via-sam: build package-via-sam sam-deploy-pre-packaged ## trigger a CodeDeploy Deployment for existing stack
+update-via-cf: build package-via-cf sam-deploy-pre-packaged ## trigger a CodeDeploy Deployment for existing stack
+# MAIN SAM COMMANDS / #
 
-invoke-local-hook: build ## locally invoke PreLiveHook with Test Event (needs aws credentials)
+# ------------------------------- #
+
+# / LOCAL TESTING #
+invoke-hook-local: build ## locally invoke PreLiveHook with Test Event (needs aws credentials)
 	sam local invoke --profile default PreLiveHook --event events/prelivehook.json
 
-invoke-local-function: build ## locally invoke HelloWorldFunction with SQS Test Event
+invoke-function-local: build ## locally invoke HelloWorldFunction with SQS Test Event
 	sam local invoke HelloWorldFunction --event events/sqsevent.json
+# LOCAL TESTING / #
 
+# ------------------------------- #
 
-cf-cancel-stackupdate: ## if IN_PROGRESS cancel update
-	@if [ "$(aws cloudformation describe-stacks --stack-name sam-poc-harry | jq '.Stacks[0].StackStatus' --raw-output | sed -En 's/[A-Z_]+_(IN_PROGRESS)/\1/p')" = "IN_PROGRESS" ]; then @echo "have to cancel update"; aws cloudformation cancel-update-stack --stack-name sam-poc-harry ; @echo "sleeping 5s"; sleep 5; fi
-
-build-debug: build ls-hook
-
+# / SAM SINGLE STEPS #
+SAM_TMPL="template.yaml"
+DEPLOY_TMPL="deployment.yml"
+STACK_NAME="sam-poc-harry"
 build:
 	sam build --use-container
 
-sam-deploy-all:
+deploy:
 	sam deploy
 
-sam-package-all: ## create deployment.yml and upload artifacts to s3 via `sam package`
-	sam package --template-file template.yaml --output-template-file deployment.yml --s3-bucket sam-poc-deployment-artifacts
+package-via-sam: ## create deployment.yml manually and upload artifacts to s3 via `sam package`
+	sam package --template-file $(SAM_TMPL) --output-template-file $(DEPLOY_TMPL) --s3-bucket $(BUCKET_STACKNAME)
 
-cf-package-all: ## create cf-template-packaged.yaml and upload artifacts to s3 via `aws cf package`
-	aws cloudformation package --template-file template.yaml --s3-bucket sam-poc-deployment-artifacts --output-template-file cf-template-packaged.yaml
+package-via-cf: ## create cf-template-packaged.yaml manually  and upload artifacts to s3 via `aws cf package`
+	aws cloudformation package --template-file $(SAM_TMPL) --output-template-file $(DEPLOY_TMPL) --s3-bucket $(BUCKET_STACKNAME)
 
-sam-deploy-packaged-all:
-	sam deploy --template-file deployment.yml --stack-name sam-poc-harry
+sam-deploy-pre-packaged:
+	sam deploy --template-file $(DEPLOY_TMPL) --stack-name $(STACKNAME)
 
+
+
+# / DEBUG #
+debug-buildFiles: debug-lsMainBuildFiles debug-lsHookBuildFiles ## list all build files
+
+debug-ls-hook-build-files: # list PreLiveHook build files
+	ls -alR .aws-sam/build/PreLiveHook/prelive
+
+debug-ls-func-build-files: # list HelloWorld build files
+	ls -al .aws-sam/build/HelloWorldFunction/helloworld
+
+debug-get-artifact-name:
+	@echo "$$(awk '/FunctionName: CodeDeployHook_PreLiveHook_HelloWorldFunction/{getline; print}' $(DEPLOY_TMPL) | sed -e 's/\s\{6,\}CodeUri\:\s//')"
+
+debug-dl-artifact-from-s3:
+	aws s3 cp $$(awk '/FunctionName: CodeDeployHook_PreLiveHook_HelloWorldFunction/{getline; print}' $(DEPLOY_TMPL) | sed -e 's/\s\{6,\}CodeUri\:\s//') dl_artifacts/
+# DEBUG / #
+
+# / S3 Bucket for deployments #
+BUCKET_STACKNAME="sam-deployment-bucket"
+create-bucket-stack: ## create the bucket for deployment packages
+	aws cloudformation deploy --template-file sam-bucket.yaml --stack-name $(BUCKET_STACKNAME)
+
+destroy-bucket-stack: s3-empty ## destroy the bucket for deployment packages
+	aws cloudformation destroy --stack-name $(BUCKET_STACKNAME)
+# S3 Bucket for deployments / #
+
+
+
+# / HELPERS private functions#
 s3-empty:
 	aws s3 rm s3://sam-poc-deployment-artifacts --recursive
 
-ls-hook: ## ls compile result of PreLiveHook
-	ls -al .aws-sam/build/PreLiveHook
+cf-cancel-stackupdate:
+	@if [ "$$(aws cloudformation describe-stacks --stack-name $(STACKNAME) | jq '.Stacks[0].StackStatus' --raw-output | sed -En 's/[A-Z_]+_(IN_PROGRESS)/\1/p')" = "IN_PROGRESS" ]; then @echo "have to cancel update"; aws cloudformation cancel-update-stack --stack-name $(STACKNAME) ; @echo "sleeping 5s"; sleep 5; fi
 
-ls-function: ## ls compile result of HelloWorldFunction
-	ls -al .aws-sam/build/HelloWorldFunction
-
+# HELPERS / #
