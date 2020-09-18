@@ -18,7 +18,7 @@ create: build deploy ## create and deploy sam stack from scratch
 ohfuck: cf-cancel-stackupdate ## stops cf update stack
 destroy: cf-cancel-stackupdate  ## destroy sam stack
 	@echo "deleting stack via aws cf";
-	aws cloudformation delete-stack --stack-name $(STACK_NAME)
+	aws cloudformation delete-stack --stack-name $(STACKNAME)
 wipe: destroy ## wipe sam stack and sam state bucket
 	aws cloudformation delete-stack --stack-name aws-sam-cli-managed-default
 update: create
