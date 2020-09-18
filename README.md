@@ -4,22 +4,26 @@
 ## tl;dr (build, test and deploy)
 ### From scratch
 `sam init`
+
 `make create`
 
 ### consecutive deploys of new versions
-`make deploy`
+`make update`
 
 ## how to destroy everything?
-1. clean s3 buckets to prevent failed deletions 
-2. `aws cloudformation delete-stack --stack-name sam-poc-harry`
+`make destroy`
+<br/>
 
-<br/><br/>
-beware, this leaves a stack, that is created by invoking `sam init`:
+- beware, this leaves a stack, that is created by invoking "sam init" `aws-sam-cli-managed-default`
+- the bucket name could probably be set in the `samconfig.toml`
+- this bucket manages template versions, comparable to a TF remote state
 
-`aws-sam-cli-managed-default`
+if you really want to clean as if you were never here before:
 
-this manages template versions, comparable to a TF remote state
-bucket name could probably be set in the `samconfig.toml`
+`make wipe`
+
+
+
   
   
 ## IntelliJ
