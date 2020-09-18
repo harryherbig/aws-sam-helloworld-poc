@@ -94,25 +94,15 @@ Resources:
       Threshold: 0
 
 Outputs:
-  HelloWorldFunctionArn:
+  HelloWorldArn:
     Description: "Hello World Lambda Function ARN"
     Value: !GetAtt HelloWorldFunction.Arn
-  HelloWorldFunctionIamRole:
-    Description: "Implicit IAM Role created for Hello World function"
-    Value: !GetAtt HelloWorldFunctionRole.Arn
-  HelloWorldFunctionVersion:
+  HelloWorldVersion:
     Description: "Hello World Lambda Function New Version"
-    Value: !Ref FunctionVersion
-    Export:
-      Name: !Ref FunctionVersion
-  PreLiveHookArn:
+    Value: !Ref  HelloWorldFunctionRole.Version
+  HookArn:
     Description: "PreLiveHook Function ARN"
     Value: !GetAtt PreLiveHook.Arn
-  PreLiveHookIamRole:
+  HookVersion:
     Description: "Implicit IAM Role created for PreLiveHook function"
-    Value: !GetAtt PreLiveHookRole.Arn
-  PreLiveHook:
-    Description: "PreLiveHook Function Ref"
-    Value: !Ref PreLiveHook
-    Export:
-      Name: !Ref PreLiveHook
+    Value: !GetAtt PreLiveHook.Version
