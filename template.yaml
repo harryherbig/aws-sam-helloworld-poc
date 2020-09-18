@@ -15,7 +15,7 @@ Resources:
       DeploymentPreference:
         Type: AllAtOnce
         Hooks:
-          PreTraffic: !Ref PreLiveHook
+          PreTraffic: !Ref preTrafficHook
         Alarms:
           - !Ref AliasErrorMetricGreaterThanZeroAlarm
           - !Ref LatestVersionErrorMetricGreaterThanZeroAlarm
@@ -24,38 +24,33 @@ Resources:
       Runtime: java11
       MemorySize: 512
 
-  PreLiveHook:
+  preTrafficHook:
     Type: AWS::Serverless::Function
     Properties:
-      #      DeploymentPreference:
-      #        # https://github.com/aws/aws-sam-cli/wiki/08-2020-codeploy-servicerole
-      #        Enabled: true
-      #        Type: AllAtOnce
-      #        AutoPublishAlias: latest
-      # Naming Convention: https://aws.amazon.com/blogs/compute/implementing-safe-aws-lambda-deployments-with-aws-codedeploy/
-      FunctionName: CodeDeployHook_PreLiveHook_HelloWorldFunction
-      CodeUri: ./PreLiveHook
-      Handler: prelive.Handler::handleRequest
-      Runtime: java11
-      #      Metadata:
-      #        BuildMethod: Makefile
-      MemorySize: 512
-      Environment:
-        Variables:
-          SAM_VERSION: !Ref HelloWorldFunction.Version
+      Handler: preTrafficHook.handler
+      CodeUri: ./JsHook
       Policies:
         - Version: "2012-10-17"
           Statement:
-            - Effect: Allow
+            - Effect: "Allow"
               Action:
-                - codedeploy:PutLifecycleEventHookExecutionStatus
-              Resource: !Sub 'arn:aws:codedeploy:${AWS::Region}:${AWS::AccountId}:deploymentgroup:${ServerlessDeploymentApplication}/*'
+                - "codedeploy:PutLifecycleEventHookExecutionStatus"
+              Resource:
+                !Sub 'arn:aws:codedeploy:${AWS::Region}:${AWS::AccountId}:deploymentgroup:${ServerlessDeploymentApplication}/*'
         - Version: "2012-10-17"
           Statement:
-            - Effect: Allow
+            - Effect: "Allow"
               Action:
-                - lambda:InvokeFunction
+                - "lambda:InvokeFunction"
               Resource: !Ref HelloWorldFunction.Version
+      Runtime: nodejs10.x
+      FunctionName: 'CodeDeployHook_preTrafficHook'
+      DeploymentPreference:
+        Enabled: false
+      Timeout: 5
+      Environment:
+        Variables:
+          NewVersion: !Ref HelloWorldFunction.Version
 
   AliasErrorMetricGreaterThanZeroAlarm:
     Type: "AWS::CloudWatch::Alarm"
