@@ -90,6 +90,6 @@ s3-empty:
 	aws s3 rm s3://sam-poc-deployment-artifacts --recursive
 
 cf-cancel-stackupdate:
-	@if [ "$$(aws cloudformation describe-stacks --stack-name $(STACKNAME) | jq '.Stacks[0].StackStatus' --raw-output | sed -En 's/[A-Z_]+_(IN_PROGRESS)/\1/p')" = "IN_PROGRESS" ]; then @echo "have to cancel update"; aws cloudformation cancel-update-stack --stack-name $(STACKNAME) ; @echo "sleeping 5s"; sleep 5; fi
+	@if [ "$$(aws cloudformation describe-stacks --stack-name $(STACKNAME) | jq '.Stacks[0].StackStatus' --raw-output | sed -En 's/[A-Z_]+_(UPDATE_IN_PROGRESS)/\1/p')" = "UPDATE_IN_PROGRESS" ]; then @echo "have to cancel update"; aws cloudformation cancel-update-stack --stack-name $(STACKNAME) ; @echo "sleeping 5s"; sleep 5; fi
 
 # HELPERS / #
