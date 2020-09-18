@@ -66,3 +66,4 @@ F*CkIT#@%": pre hook geht einfach nur mit node.js, in Java hat der Event keine F
 
 ## Links
 https://github.com/aws-samples/aws-safe-lambda-deployments
+https://github.com/aws/aws-lambda-builders/
