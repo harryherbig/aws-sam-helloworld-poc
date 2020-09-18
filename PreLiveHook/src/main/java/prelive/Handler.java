@@ -16,21 +16,17 @@ public class Handler implements RequestHandler<HookEvent, String> {
 
   @Override
   public String handleRequest(HookEvent input, Context context) {
-    boolean isTest = true;
-    final Option<String> maybeExecId = Option.of(input.getLifecycleEventHookExecutionId());
-    final Option<String> maybeDeploymentId = Option.of(input.getDeploymentId());
-    final String newVersionFromEnv = System.getenv("SAM_VERSION");
-    if (maybeExecId.isDefined() && maybeDeploymentId.isDefined() && newVersionFromEnv != null) {
-      System.out.println("PROD MODE");
-      isTest = false;
-    } else {
-      System.out.println("TEST MODE");
-    }
+    boolean isTest = System.getenv("AWS_SAM_LOCAL") != null;
 
     if (isTest) {
+      System.out.println("TEST MODE");
       final JSONObject result = FunctionInvoker.invoke(Configs.LIVE_VERSION_ARN);
       return "Finished TEST MODE: invoked live alias with result: " + result.toString();
     } else {
+      System.out.println("PROD MODE");
+      final Option<String> maybeExecId = Option.of(input.getLifecycleEventHookExecutionId());
+      final Option<String> maybeDeploymentId = Option.of(input.getDeploymentId());
+      final String newVersionFromEnv = System.getenv("SAM_VERSION");
       final JSONObject result = FunctionInvoker.invoke(newVersionFromEnv);
       final boolean cycle =
           LifeCycleManager.manageLifeCycle(

@@ -35,7 +35,7 @@ Resources:
       # Naming Convention: https://aws.amazon.com/blogs/compute/implementing-safe-aws-lambda-deployments-with-aws-codedeploy/
       FunctionName: CodeDeployHook_PreLiveHook_HelloWorldFunction
       CodeUri: ./PreLiveHook
-      Handler: prelive.Validator::handleRequest
+      Handler: prelive.Handler::handleRequest
       Runtime: java11
       #      Metadata:
       #        BuildMethod: Makefile
