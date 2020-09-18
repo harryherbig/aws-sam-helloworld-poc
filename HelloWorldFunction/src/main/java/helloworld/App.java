@@ -9,21 +9,17 @@ import org.json.JSONObject;
 public class App implements RequestHandler<SQSEvent, String> {
 
   public String handleRequest(final SQSEvent input, final Context context) {
-    final JSONObject result =
-        new JSONObject().put("message", "Forcing bad version to make hook fail!.").put("result", 500);
+    final JSONObject OK =
+        new JSONObject().put("message", "Harry says: All good in da hood!").put("result", 200);
+    final JSONObject BAD =
+        new JSONObject()
+            .put("message", "Harry forcing failure!.")
+            .put("result", 500);
     System.out.println(
         "Hello World Function was invoked. My version is: "
             + System.getenv("AWS_LAMBDA_FUNCTION_VERSION"));
-    if (input.getRecords() != null) {
-      input.getRecords().stream()
-          .filter(r -> r.getBody() != null)
-          .findFirst()
-          .ifPresent(
-              rec -> {
-                result.put("message", rec.getBody());
-                result.put("result", 200);
-              });
-    }
-    return result.toString();
+
+//    return BAD.toString();
+    return OK.toString();
   }
 }
