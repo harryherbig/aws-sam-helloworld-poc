@@ -8,13 +8,14 @@ help: ## This help.
 # ------------------------------- #
 SAM_TMPL=template.yaml
 DEPLOY_TMPL=deployment.yml
-STACK_NAME=sam-poc-harry
+STACKNAME=sam-poc-harry
 # ------------------------------- #
 
 # ------------------------------- #
 # / MAIN SAM COMMANDS #
 create: build deploy ## create and deploy sam stack from scratch
 
+ohfuck: cf-cancel-stackupdate ## stops cf update stack
 destroy: cf-cancel-stackupdate  ## destroy sam stack
 	@echo "deleting stack via aws cf";
 	aws cloudformation delete-stack --stack-name $(STACK_NAME)
@@ -52,8 +53,8 @@ destroy-bucket-stack: s3-empty ## destroy the bucket for deployment packages
 
 # ------------------------------- #
 # / LOCAL TESTING #
-invoke-hook-local: build ## locally invoke PreLiveHook with Test Event (needs aws credentials)
-	sam local invoke --profile default PreLiveHook --event events/prelivehook.json
+invoke-hook-local: build ## locally invoke preTrafficHook with Test Event (needs aws credentials)
+	sam local invoke --profile default preTrafficHook --event events/prelivehook.json
 
 invoke-function-local: build ## locally invoke HelloWorldFunction with SQS Test Event
 	sam local invoke HelloWorldFunction --event events/sqsevent.json
@@ -64,19 +65,22 @@ invoke-function-local: build ## locally invoke HelloWorldFunction with SQS Test 
 # ------------------------------- #
 # / SAM SINGLE STEPS #
 build:
+	sam build
+build-container:
 	sam build --use-container
 
 deploy:
 	sam deploy
 
 # / DEBUG #
-debug-buildFiles: debug-lsMainBuildFiles debug-lsHookBuildFiles ## list all build files
+build-debug: build debug-build-files
+debug-build-files: debug-ls-func-build-files debug-ls-hook-build-files ## list all build files
 
-debug-ls-hook-build-files: # list PreLiveHook build files
-	ls -alR .aws-sam/build/PreLiveHook/prelive
+debug-ls-hook-build-files: # list JsHook build files
+	ls -alR .aws-sam/build/JsHook
 
 debug-ls-func-build-files: # list HelloWorld build files
-	ls -al .aws-sam/build/HelloWorldFunction/helloworld
+	ls -al .aws-sam/build/HelloWorldFunction
 
 debug-get-artifact-name:
 	@echo "$$(awk '/FunctionName: CodeDeployHook_PreLiveHook_HelloWorldFunction/{getline; print}' $(DEPLOY_TMPL) | sed -e 's/\s\{6,\}CodeUri\:\s//')"
@@ -91,6 +95,7 @@ s3-empty:
 	aws s3 rm s3://sam-poc-deployment-artifacts --recursive
 
 cf-cancel-stackupdate:
+	@echo "aws cloudformation describe-stacks --stack-name $(STACKNAME) | jq '.Stacks[0].StackStatus' --raw-output | sed -En 's/[A-Z_]+_(UPDATE_IN_PROGRESS)/\1/p'; aws cloudformation cancel-update-stack --stack-name $(STACKNAME)"
 	@if [ "$$(aws cloudformation describe-stacks --stack-name $(STACKNAME) | jq '.Stacks[0].StackStatus' --raw-output | sed -En 's/[A-Z_]+_(UPDATE_IN_PROGRESS)/\1/p')" = "UPDATE_IN_PROGRESS" ]; then @echo "have to cancel update"; aws cloudformation cancel-update-stack --stack-name $(STACKNAME) ; @echo "sleeping 5s"; sleep 5; fi
 
 # HELPERS / #
