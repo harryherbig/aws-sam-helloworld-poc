@@ -2,29 +2,12 @@
 
 
 ## tl;dr (build, test and deploy)
-### Single Steps  
-`sam build`
-  
-`sam local invoke --event events/sqsevent.json`
-  
-`sam deploy`
-
-### First run
-`sam build --use-container && sam deploy`
-
-
-:warning: <br/>
-changes exclusively to template.yml also need a `sam build` before able to `sam deploy` it.
-
+### From scratch
+`sam init`
+`make create`
 
 ### consecutive deploys of new versions
-```
-sam build --use-container && \
-sam package \
-   --template-file template.yaml \
-   --output-template-file deployment.yml --s3-bucket sam-poc-deployment-artifacts && \
-sam deploy  --template-file deployment.yml --stack-name sam-poc-harry
-```
+`make deploy`
 
 ## how to destroy everything?
 1. clean s3 buckets to prevent failed deletions 
@@ -36,7 +19,7 @@ beware, this leaves a stack, that is created by invoking `sam init`:
 `aws-sam-cli-managed-default`
 
 this manages template versions, comparable to a TF remote state
-
+bucket name could probably be set in the `samconfig.toml`
   
   
 ## IntelliJ

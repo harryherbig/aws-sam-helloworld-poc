@@ -99,10 +99,4 @@ Outputs:
     Value: !GetAtt HelloWorldFunction.Arn
   HelloWorldVersion:
     Description: "Hello World Lambda Function New Version"
-    Value: !Ref  HelloWorldFunctionRole.Version
-  HookArn:
-    Description: "PreLiveHook Function ARN"
-    Value: !GetAtt PreLiveHook.Arn
-  HookVersion:
-    Description: "Implicit IAM Role created for PreLiveHook function"
-    Value: !GetAtt PreLiveHook.Version
+    Value: !Ref  HelloWorldFunction.Version

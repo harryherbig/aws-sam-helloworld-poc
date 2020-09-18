@@ -10,9 +10,12 @@ Resources:
   DeploymentBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: sam-poc-deployment-artifacts
+      BucketName: CodeDeploy_sam-artifacts
 
 Outputs:
-  DeploymentBucket:
+  DeploymentBucketArn:
     Description: "DeploymentBucket ARN"
     Value: !GetAtt DeploymentBucket.Arn
+    Export:
+      Name:
+        !GetAtt DeploymentBucket.Arn

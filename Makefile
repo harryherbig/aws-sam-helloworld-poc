@@ -5,39 +5,29 @@ help: ## This help.
 
 .DEFAULT_GOAL := help
 
+# ------------------------------- #
+SAM_TMPL=template.yaml
+DEPLOY_TMPL=deployment.yml
+STACK_NAME=sam-poc-harry
+# ------------------------------- #
+
+# ------------------------------- #
 # / MAIN SAM COMMANDS #
 create: build deploy ## create and deploy sam stack from scratch
 
 destroy: cf-cancel-stackupdate  ## destroy sam stack
 	@echo "deleting stack via aws cf";
-	aws cloudformation delete-stack --stack-name sam-poc-harry
+	aws cloudformation delete-stack --stack-name $(STACK_NAME)
 
+update: create
+# MAIN SAM COMMANDS / #
+# ------------------------------- #
+
+
+# ------------------------------- #
+# MANUAL STEPS FOR PACKAGED DEPLOYS #
 update-via-sam: build package-via-sam sam-deploy-pre-packaged ## trigger a CodeDeploy Deployment for existing stack
 update-via-cf: build package-via-cf sam-deploy-pre-packaged ## trigger a CodeDeploy Deployment for existing stack
-# MAIN SAM COMMANDS / #
-
-# ------------------------------- #
-
-# / LOCAL TESTING #
-invoke-hook-local: build ## locally invoke PreLiveHook with Test Event (needs aws credentials)
-	sam local invoke --profile default PreLiveHook --event events/prelivehook.json
-
-invoke-function-local: build ## locally invoke HelloWorldFunction with SQS Test Event
-	sam local invoke HelloWorldFunction --event events/sqsevent.json
-# LOCAL TESTING / #
-
-# ------------------------------- #
-
-# / SAM SINGLE STEPS #
-SAM_TMPL="template.yaml"
-DEPLOY_TMPL="deployment.yml"
-STACK_NAME="sam-poc-harry"
-build:
-	sam build --use-container
-
-deploy:
-	sam deploy
-
 package-via-sam: ## create deployment.yml manually and upload artifacts to s3 via `sam package`
 	sam package --template-file $(SAM_TMPL) --output-template-file $(DEPLOY_TMPL) --s3-bucket $(BUCKET_STACKNAME)
 
@@ -47,7 +37,36 @@ package-via-cf: ## create cf-template-packaged.yaml manually  and upload artifac
 sam-deploy-pre-packaged:
 	sam deploy --template-file $(DEPLOY_TMPL) --stack-name $(STACKNAME)
 
+# / S3 Bucket for deployments #
+BUCKET_STACKNAME="sam-deployment-bucket"
+create-bucket-stack: ## create the bucket for deployment packages
+	aws cloudformation deploy --template-file sam-bucket.yaml --stack-name $(BUCKET_STACKNAME)
 
+destroy-bucket-stack: s3-empty ## destroy the bucket for deployment packages
+	aws cloudformation destroy --stack-name $(BUCKET_STACKNAME)
+# S3 Bucket for deployments / #
+
+# MANUAL STEPS FOR PACKAGED DEPLOYS #
+# ------------------------------- #
+
+# ------------------------------- #
+# / LOCAL TESTING #
+invoke-hook-local: build ## locally invoke PreLiveHook with Test Event (needs aws credentials)
+	sam local invoke --profile default PreLiveHook --event events/prelivehook.json
+
+invoke-function-local: build ## locally invoke HelloWorldFunction with SQS Test Event
+	sam local invoke HelloWorldFunction --event events/sqsevent.json
+# LOCAL TESTING / #
+# ------------------------------- #
+
+
+# ------------------------------- #
+# / SAM SINGLE STEPS #
+build:
+	sam build --use-container
+
+deploy:
+	sam deploy
 
 # / DEBUG #
 debug-buildFiles: debug-lsMainBuildFiles debug-lsHookBuildFiles ## list all build files
@@ -64,16 +83,6 @@ debug-get-artifact-name:
 debug-dl-artifact-from-s3:
 	aws s3 cp $$(awk '/FunctionName: CodeDeployHook_PreLiveHook_HelloWorldFunction/{getline; print}' $(DEPLOY_TMPL) | sed -e 's/\s\{6,\}CodeUri\:\s//') dl_artifacts/
 # DEBUG / #
-
-# / S3 Bucket for deployments #
-BUCKET_STACKNAME="sam-deployment-bucket"
-create-bucket-stack: ## create the bucket for deployment packages
-	aws cloudformation deploy --template-file sam-bucket.yaml --stack-name $(BUCKET_STACKNAME)
-
-destroy-bucket-stack: s3-empty ## destroy the bucket for deployment packages
-	aws cloudformation destroy --stack-name $(BUCKET_STACKNAME)
-# S3 Bucket for deployments / #
-
 
 
 # / HELPERS private functions#
