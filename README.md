@@ -1,5 +1,7 @@
 # sam-poc-helloworld
 
+## TODO
+- add "make target" to stop deployment and rollback stack (dont want to wait 1h) 
 
 ## tl;dr (build, test and deploy)
 ### From scratch
@@ -59,3 +61,8 @@ Keine custom tags vergebbar
 
 
 IntelliJ rename package "helloworld" of `HelloWorldFunction` also renames package `prelive` for `PreLiveHook`
+
+F*CkIT#@%": pre hook geht einfach nur mit node.js, in Java hat der Event keine Felder. Type ist auch unbekannt. 
+
+## Links
+https://github.com/aws-samples/aws-safe-lambda-deployments
