@@ -1,0 +1,34 @@
+plugins {
+    id 'idea'
+    id 'java'
+}
+
+repositories {
+    mavenCentral()
+}
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
+
+dependencies {
+    implementation 'com.amazonaws:aws-lambda-java-core:1.2.0'
+    implementation 'com.amazonaws:aws-lambda-java-events:3.1.0'
+    implementation 'com.amazonaws:aws-java-sdk-lambda:1.11.860'
+    implementation 'com.amazonaws:aws-java-sdk-codedeploy:1.11.860'
+    implementation 'org.json:json:20200518'
+
+
+    testImplementation 'junit:junit:4.12'
+}
+
+import org.gradle.api.tasks.testing.logging.TestLogEvent;
+tasks.withType(Test) {
+    testLogging {
+        // set options for log level LIFECYCLE
+        events TestLogEvent.FAILED,
+                TestLogEvent.PASSED,
+                TestLogEvent.SKIPPED,
+                TestLogEvent.STANDARD_OUT
+    }
+}

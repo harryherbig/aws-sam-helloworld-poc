@@ -15,7 +15,9 @@ STACKNAME=sam-poc-harry
 # / MAIN SAM COMMANDS #
 create: build deploy ## create and deploy sam stack from scratch
 
-ohfuck: cf-cancel-stackupdate ## stops cf update stack
+rollback: cf-cancel-stackupdate ## rollsback cf stack
+status:
+	aws cloudformation describe-stacks --stack-name $(STACKNAME)
 destroy: cf-cancel-stackupdate  ## destroy sam stack
 	@echo "deleting stack via aws cf";
 	aws cloudformation delete-stack --stack-name $(STACKNAME)
@@ -94,8 +96,16 @@ debug-dl-artifact-from-s3:
 s3-empty:
 	aws s3 rm s3://sam-poc-deployment-artifacts --recursive
 
+
+stop-deploy:
+	$(eval DEPLOYMENTID := $(shell aws deploy list-deployments --include-only-statuses "InProgress" | jq ".deployments[0]" --raw-output))
+	echo Got Deployment ID: $(DEPLOYMENTID)
+	@if [[ $(DEPLOYMENTID) != null ]] ; then aws deploy stop-deployment --deployment-id $(DEPLOYMENTID); fi
+
+
+
 cf-cancel-stackupdate:
-	@echo "aws cloudformation describe-stacks --stack-name $(STACKNAME) | jq '.Stacks[0].StackStatus' --raw-output | sed -En 's/[A-Z_]+_(UPDATE_IN_PROGRESS)/\1/p'; aws cloudformation cancel-update-stack --stack-name $(STACKNAME)"
-	@if [ "$$(aws cloudformation describe-stacks --stack-name $(STACKNAME) | jq '.Stacks[0].StackStatus' --raw-output | sed -En 's/[A-Z_]+_(UPDATE_IN_PROGRESS)/\1/p')" = "UPDATE_IN_PROGRESS" ]; then @echo "have to cancel update"; aws cloudformation cancel-update-stack --stack-name $(STACKNAME) ; @echo "sleeping 5s"; sleep 5; fi
+	@echo "aws cloudformation describe-stacks --stack-name $(STACKNAME) | jq '.Stacks[0].StackStatus' --raw-output | sed -En 's/[A-Z_]+_(IN_PROGRESS)/\1/p'; aws cloudformation cancel-update-stack --stack-name $(STACKNAME)"
+	@if [ "$$(aws cloudformation describe-stacks --stack-name $(STACKNAME) | jq '.Stacks[0].StackStatus' --raw-output | sed -En 's/[A-Z_]+_(IN_PROGRESS)/\1/p')" = "IN_PROGRESS" ]; then echo "have to cancel update"; aws cloudformation cancel-update-stack --stack-name $(STACKNAME); fi
 
 # HELPERS / #

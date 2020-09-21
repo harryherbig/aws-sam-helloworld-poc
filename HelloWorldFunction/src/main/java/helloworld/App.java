@@ -2,28 +2,24 @@ package helloworld;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
-import com.amazonaws.services.lambda.runtime.events.SQSEvent;
+import io.vavr.control.Try;
+import java.util.Map;
 import org.json.JSONObject;
 
 /** Handler for requests to Lambda function. */
-public class App implements RequestHandler<SQSEvent, JSONObject> {
+public class App implements RequestHandler<Object, String> {
 
-  public JSONObject handleRequest(final SQSEvent input, final Context context) {
+  public String handleRequest(final Object event, final Context context) {
+
+    String data = event != null ? event.toString() : "{}";
+
     System.out.println(
         "Hello World Function was invoked. My version is: "
             + System.getenv("AWS_LAMBDA_FUNCTION_VERSION"));
-    final JSONObject OK =
-        new JSONObject()
-            .put("message", "Harry says: All good in da hood!")
-            .put("statusCode", 200);
-    final JSONObject BAD =
-        new JSONObject()
-            .put("message", "Harry forcing failure!.")
-            .put("statusCode", 500);
 
-    System.out.println("Will stop now and return my result");
+    System.out.println("hello from harry");
+    System.out.println("data as string is: " + data);
 
-//    return BAD;
-    return OK;
+    return "200 OK - " + data;
   }
 }
