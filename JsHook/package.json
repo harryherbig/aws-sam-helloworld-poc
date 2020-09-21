@@ -1,7 +1,0 @@
-{
-  "name": "preTrafficHook",
-  "dependencies": {
-    "aws-sdk": "^2.756.0"
-  },
-  "version": "1.0.0"
-}

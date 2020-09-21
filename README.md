@@ -64,6 +64,8 @@ IntelliJ rename package "helloworld" of `HelloWorldFunction` also renames packag
 
 F*CkIT#@%": pre hook geht einfach nur mit node.js, in Java hat der Event keine Felder. Type ist auch unbekannt. 
 
+Okay: geht doch mit Java Hook Lambda, wenn man `Map<String, String> event` als Input nimmt.
+
 ## Links
 https://github.com/aws-samples/aws-safe-lambda-deployments
 https://github.com/aws/aws-lambda-builders/
