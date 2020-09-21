@@ -4,6 +4,7 @@
 **/bin
 .idea
 **/node_modules
+**/build
 
 dl_artifacts
 
