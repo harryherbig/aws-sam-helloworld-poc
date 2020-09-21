@@ -6,10 +6,7 @@ import com.amazonaws.services.lambda.AWSLambdaClientBuilder;
 import com.amazonaws.services.lambda.model.InvocationType;
 import com.amazonaws.services.lambda.model.InvokeRequest;
 import com.amazonaws.services.lambda.model.InvokeResult;
-import com.fasterxml.jackson.databind.util.JSONPObject;
 import java.nio.charset.StandardCharsets;
-import java.util.Map;
-import org.json.JSONObject;
 import prelive.InvocationResponse;
 
 public class FunctionInvoker {
@@ -30,13 +27,10 @@ public class FunctionInvoker {
             .withInvocationType(InvocationType.RequestResponse)
             .withPayload("{\"greeting\":\"Hello Lambda\"}");
 
-
     AWSLambda awsLambda = AWSLambdaClientBuilder.standard().withRegion(region).build();
     InvokeResult invokeResult = awsLambda.invoke(invokeRequest);
-    final String payloadAsString = new String(invokeResult.getPayload().array(), StandardCharsets.UTF_8);
-    return InvocationResponse.with(
-        payloadAsString,
-        invokeResult.getStatusCode());
+    final String payloadAsString =
+        new String(invokeResult.getPayload().array(), StandardCharsets.UTF_8);
+    return InvocationResponse.with(payloadAsString, invokeResult.getStatusCode());
   }
-
 }

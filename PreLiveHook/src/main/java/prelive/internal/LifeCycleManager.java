@@ -13,10 +13,11 @@ public class LifeCycleManager {
 
   public static boolean manageLifeCycle(
       String deploymentId, String lifeCycleExecutionId, boolean success) {
-    var request = new PutLifecycleEventHookExecutionStatusRequest()
-        .withLifecycleEventHookExecutionId(lifeCycleExecutionId)
-        .withDeploymentId(deploymentId)
-        .withStatus(success ? "Succeeded" : "Failed");
+    var request =
+        new PutLifecycleEventHookExecutionStatusRequest()
+            .withLifecycleEventHookExecutionId(lifeCycleExecutionId)
+            .withDeploymentId(deploymentId)
+            .withStatus(success ? "Succeeded" : "Failed");
     System.out.println("codedeploy request: " + request);
     try {
       System.out.println("START putting LifecycleEventHookExecutionStatus to codedeploy");

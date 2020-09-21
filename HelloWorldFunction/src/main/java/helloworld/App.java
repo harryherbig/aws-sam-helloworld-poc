@@ -2,9 +2,6 @@ package helloworld;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
-import io.vavr.control.Try;
-import java.util.Map;
-import org.json.JSONObject;
 
 /** Handler for requests to Lambda function. */
 public class App implements RequestHandler<Object, String> {
@@ -21,5 +18,6 @@ public class App implements RequestHandler<Object, String> {
     System.out.println("data as string is: " + data);
 
     return "200 OK - " + data;
+    //    return "500 Error";
   }
 }
